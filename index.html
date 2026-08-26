@@ -11,9 +11,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Firebase Config Anda[cite: 1]
+        // Firebase Config Anda
         const firebaseConfig = {
             apiKey: "AIzaSyDXc06B8WLtqjkG0aScBHrd3L3M-n_5okc",
             authDomain: "grammar-hub-6af80.firebaseapp.com",
@@ -50,16 +50,14 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, custEmail, defaultPassword);
                 const user = userCredential.user;
 
-                // 2. Simpan maklumat tambahan customer dalam Firebase Realtime Database
+                // 2. Simpan maklumat tambahan customer dan nama reseller dalam Firebase Realtime Database
                 await set(ref(db, 'users/' + user.uid), {
                     nama: custNama,
                     email: custEmail,
                     nofon: custNofon,
-                    reseller_rujukan: resellerNama,
+                    reseller_rujukan: resellerNama, // Nama reseller direkodkan di sini
                     createdAt: new Date().toISOString()
                 });
-
-                // NOTIS: Kod alert kejayaan telah dibuang di sini supaya terus redirect tanpa popup.
 
                 // 3. Bina URL target menggunakan data reseller untuk dibawa ke BCL
                 const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
@@ -73,9 +71,81 @@
                 alert("Gagal mendaftar: " + error.message);
             }
         }
+
+        // Fungsi Buka Modal Admin
+        window.openAdminModal = function() {
+            document.getElementById('adminModal').classList.remove('hidden');
+        }
+
+        // Fungsi Tutup Modal Admin
+        window.closeAdminModal = function() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // Fungsi Semak Password Admin dan Tarik Data
+        window.verifyAdminPassword = async function() {
+            const pass = document.getElementById('adminPassword').value;
+            if(pass === "019681") { // Password yang ditetapkan[cite: 1]
+                document.getElementById('adminLoginSection').classList.add('hidden');
+                document.getElementById('adminDashboardSection').classList.remove('hidden');
+                
+                // Paparkan modal panel admin penuh
+                document.getElementById('adminMainModal').classList.remove('hidden');
+                
+                // Muat data dari Firebase
+                await loadAdminData();
+            } else {
+                alert("Password Admin Salah!");
+            }
+        }
+
+        window.closeAdminDashboard = function() {
+            document.getElementById('adminMainModal').classList.add('hidden');
+            document.getElementById('adminLoginSection').classList.remove('hidden');
+            document.getElementById('adminDashboardSection').classList.add('hidden');
+        }
+
+        // Fungsi Tarik Senarai Data Customer & Reseller dari Database
+        async function loadAdminData() {
+            const tableBody = document.getElementById('adminTableBody');
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Memuatkan data...</td></tr>`;
+
+            try {
+                const dbRef = ref(db, 'users');
+                const snapshot = await get(dbRef);
+
+                if (snapshot.exists()) {
+                    tableBody.innerHTML = '';
+                    const data = snapshot.val();
+                    
+                    let counter = 1;
+                    for (const uid in data) {
+                        const user = data[uid];
+                        const dateFormatted = user.createdAt ? new Date(user.createdAt).toLocaleString() : '-';
+                        
+                        const row = `
+                            <tr class="border-b hover:bg-slate-50">
+                                <td class="px-4 py-3 text-sm text-slate-700">${counter++}</td>
+                                <td class="px-4 py-3 text-sm font-medium text-slate-800">${user.nama || '-'}</td>
+                                <td class="px-4 py-3 text-sm text-slate-600">${user.email || '-'}<br><span class="text-xs text-slate-400">${user.nofon || ''}</span></td>
+                                <td class="px-4 py-3 text-sm font-semibold text-emerald-700">${user.reseller_rujukan || '-'}</td>
+                                <td class="px-4 py-3 text-sm text-slate-500">${dateFormatted}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    }
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Tiada rekod ditemui.</td></tr>`;
+                }
+            } catch (error) {
+                console.error("Ralat memuatkan data:", error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Gagal memuatkan data.</td></tr>`;
+            }
+        }
     </script>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen py-8">
+<body class="bg-slate-50 flex flex-col items-center justify-center min-h-screen py-8 relative">
 
     <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
         <div class="text-center mb-6">
@@ -151,6 +221,61 @@
                 Register & Teruskan
             </button>
         </form>
+
+        <!-- BUTTON ADMIN -->
+        <div class="mt-6 pt-4 border-t border-slate-200 text-center">
+            <button onclick="openAdminModal()" class="text-sm text-slate-500 hover:text-slate-800 underline font-medium">
+                🔒 Paparan Admin
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN -->
+    <div id="adminModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        
+        <!-- Bahagian 1: Log Masuk Password -->
+        <div id="adminLoginSection" class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Log Masuk Admin</h3>
+            <p class="text-xs text-slate-500 mb-4">Sila masukkan kata laluan sah untuk melihat rekod data.</p>
+            <input type="password" id="adminPassword" placeholder="Masukkan Password" 
+                class="w-full px-4 py-2 border border-slate-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeAdminModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm rounded-lg">Batal</button>
+                <button onclick="verifyAdminPassword()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg">Masuk</button>
+            </div>
+        </div>
+
+        <!-- Bahagian 2: Dashboard Paparan Rekod Data (Selepas Login Berjaya) -->
+        <div id="adminMainModal" class="hidden fixed inset-0 bg-slate-900/70 flex items-center justify-center p-4 z-50">
+            <div id="adminDashboardSection" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div class="p-6 bg-slate-800 text-white flex justify-between items-center">
+                    <h3 class="text-xl font-bold">Rekod Admin - Senarai Customer & Reseller</h3>
+                    <button onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b text-slate-700 text-sm">
+                                    <th class="px-4 py-3">No.</th>
+                                    <th class="px-4 py-3">Nama Customer</th>
+                                    <th class="px-4 py-3">Emel / Telefon Customer</th>
+                                    <th class="px-4 py-3">Nama Reseller Rujukan</th>
+                                    <th class="px-4 py-3">Tarikh Daftar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody">
+                                <!-- Data akan dimasukkan secara dinamik melalui JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="p-4 bg-slate-100 border-t flex justify-end">
+                    <button onclick="closeAdminDashboard()" class="px-5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-semibold">Tutup</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 </body>
