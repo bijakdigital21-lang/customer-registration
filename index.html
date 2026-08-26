@@ -67,28 +67,35 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // 3. Hantar Emel Automatik kepada Customer menggunakan EmailJS
+                console.log("Firebase pendaftaran & database berjaya disimpan.");
+
+            } catch (error) {
+                console.error("Ralat Firebase:", error);
+                alert("Gagal mendaftar ke Firebase: " + error.message);
+                return; // Hentikan proses jika gagal daftar Firebase
+            }
+
+            // 3. Cuba Hantar Emel Automatik (Diasingkan supaya kalau emel gagal, sistem tak 'block' pendaftaran)
+            try {
                 const templateParams = {
                     to_name: custNama,
                     to_email: custEmail,
                     password: defaultPassword
                 };
 
-                // ID Servis EmailJS anda perlu diganti jika belum set (contoh guna 'service_xxxx')
-                // Pastikan nama pembolehubah dalam template EmailJS anda mengikut: {{to_name}}, {{to_email}}, {{password}}
                 await emailjs.send('service_hd5rpgc', 'template_75uw67r', templateParams);
-
-                // 4. Bina URL target menggunakan data reseller untuk dibawa ke BCL[cite: 2]
-                const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
-                const targetUrl = `${baseUrl}?name=${encodeURIComponent(resellerNama)}&email=${encodeURIComponent(resellerEmail)}&phone=${encodeURIComponent(resellerNofon)}`;
-
-                // Bawa pengguna secara automatik ke halaman tersebut[cite: 2]
-                window.location.href = targetUrl;
-
-            } catch (error) {
-                console.error("Ralat Proses:", error);
-                alert("Gagal mendaftar atau hantar emel: " + error.message);
+                console.log("Emel berjaya dihantar melalui EmailJS.");
+            } catch (emailError) {
+                console.warn("Amaran: Emel gagal dihantar tetapi pendaftaran kekal berjaya.", emailError);
+                // Boleh abaikan atau beri paparan amaran kecil jika perlu
             }
+
+            // 4. Bina URL target menggunakan data reseller untuk dibawa ke BCL[cite: 2]
+            const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
+            const targetUrl = `${baseUrl}?name=${encodeURIComponent(resellerNama)}&email=${encodeURIComponent(resellerEmail)}&phone=${encodeURIComponent(resellerNofon)}`;
+
+            // Bawa pengguna secara automatik ke halaman tersebut[cite: 2]
+            window.location.href = targetUrl;
         }
     </script>
 </head>
