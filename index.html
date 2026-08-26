@@ -7,34 +7,66 @@
     <!-- Menggunakan Tailwind CSS untuk rekaan moden -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+<body class="bg-slate-50 flex items-center justify-center min-h-screen py-8">
 
     <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
         <div class="text-center mb-6">
             <h2 class="text-2xl font-bold text-slate-800">Daftar Sekarang</h2>
-            <p class="text-sm text-slate-500 mt-1">Sila masukkan maklumat anda untuk diteruskan.</p>
+            <p class="text-sm text-slate-500 mt-1">Sila masukkan maklumat customer dan reseller untuk diteruskan.</p>
         </div>
 
-        <form id="regForm" onsubmit="handleRegister(event)" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Penuh</label>
-                <input type="text" id="nama" required 
-                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="Contoh: Ahmad Ali">
+        <form id="regForm" onsubmit="handleRegister(event)" class="space-y-6">
+            
+            <!-- MAKLUMAT CUSTOMER -->
+            <div class="space-y-4 pb-4 border-b border-slate-200">
+                <h3 class="text-md font-semibold text-blue-600">Maklumat Customer</h3>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Penuh Customer</label>
+                    <input type="text" id="cust_nama" required 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Contoh: Siti Aminah">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Emel Customer</label>
+                    <input type="email" id="cust_email" required 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="customer@email.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">No. Telefon Customer</label>
+                    <input type="tel" id="cust_nofon" required 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="0123456789">
+                </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Emel</label>
-                <input type="email" id="email" required 
-                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="contoh@email.com">
-            </div>
+            <!-- MAKLUMAT RESELLER (DATA AKAN DI-AUTO FILL KE BCL) -->
+            <div class="space-y-4">
+                <h3 class="text-md font-semibold text-emerald-600">Maklumat Reseller</h3>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Penuh Reseller</label>
+                    <input type="text" id="reseller_nama" required 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Contoh: Ahmad Ali">
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">No. Telefon</label>
-                <input type="tel" id="nofon" required 
-                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="0123456789">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Emel Reseller</label>
+                    <input type="email" id="reseller_email" required 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="reseller@email.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">No. Telefon Reseller</label>
+                    <input type="tel" id="reseller_nofon" required 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="0189876543">
+                </div>
             </div>
 
             <button type="submit" 
@@ -49,24 +81,18 @@
             // Halang borang daripada 'submit' cara biasa
             event.preventDefault();
 
-            // Ambil nilai daripada input pengguna
-            const nama = encodeURIComponent(document.getElementById('nama').value);
-            const email = encodeURIComponent(document.getElementById('email').value);
-            const nofon = encodeURIComponent(document.getElementById('nofon').value);
+            // AMBIL DATA RESELLER SAHAJA UNTUK DIBAWA KE PAGE BCL
+            const nama = encodeURIComponent(document.getElementById('reseller_nama').value);
+            const email = encodeURIComponent(document.getElementById('reseller_email').value);
+            const nofon = encodeURIComponent(document.getElementById('reseller_nofon').value);
 
             // URL Destinasi yang diberikan
             const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
 
-            /**
-             * NOTA PENTING:
-             * Kod di bawah mengikut andaian standard sistem borang menerima parameter URL 
-             * (seperti ?name=...&email=...&phone=...). 
-             * Sila tukar 'name', 'email', 'phone' mengikut 'name' attribute yang digunakan 
-             * pada sistem asal (bijakbelajar.bcl.my).
-             */
+            // Bina URL target menggunakan data reseller sahaja
             const targetUrl = `${baseUrl}?name=${nama}&email=${email}&phone=${nofon}`;
 
-            // Bawa pengguna secara automatik ke halaman tersebut dengan data yang dibawa bersama
+            // Bawa pengguna secara automatik ke halaman tersebut
             window.location.href = targetUrl;
         }
     </script>
