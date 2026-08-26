@@ -37,6 +37,15 @@
             display: block;
             margin-bottom: 5px;
         }
+        .form-section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+        }
         .form-group {
             margin-bottom: 15px;
         }
@@ -65,6 +74,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: background-color 0.2s;
+            margin-top: 10px;
         }
         .btn-register:hover {
             background-color: #0056b3;
@@ -86,19 +96,38 @@
 
         <!-- Form Pendaftaran -->
         <form id="registrationForm">
+            <!-- Maklumat Customer -->
+            <div class="form-section-title">Maklumat Customer</div>
             <div class="form-group">
                 <label for="name">Name:</label>
-                <input type="text" id="name" required placeholder="Masukkan nama penuh">
+                <input type="text" id="name" required placeholder="Masukkan nama penuh customer">
             </div>
 
             <div class="form-group">
                 <label for="email">Email:</label>
-                <input type="email" id="email" required placeholder="nama@example.com">
+                <input type="email" id="email" required placeholder="customer@example.com">
             </div>
 
             <div class="form-group">
                 <label for="phone">Phone NO:</label>
                 <input type="tel" id="phone" required placeholder="0123456789">
+            </div>
+
+            <!-- Maklumat Reseller -->
+            <div class="form-section-title">Maklumat Reseller</div>
+            <div class="form-group">
+                <label for="resellerName">Nama Reseller:</label>
+                <input type="text" id="resellerName" required placeholder="Masukkan nama anda">
+            </div>
+
+            <div class="form-group">
+                <label for="resellerEmail">Email Reseller:</label>
+                <input type="email" id="resellerEmail" required placeholder="reseller@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="resellerPhone">No Fon Reseller:</label>
+                <input type="tel" id="resellerPhone" required placeholder="0123456789">
             </div>
 
             <button type="submit" class="btn-register" id="submitBtn">Register Now</button>
@@ -133,16 +162,23 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // Data Customer
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
             const phone = document.getElementById('phone').value.trim();
+            
+            // Data Reseller
+            const resellerName = document.getElementById('resellerName').value.trim();
+            const resellerEmail = document.getElementById('resellerEmail').value.trim();
+            const resellerPhone = document.getElementById('resellerPhone').value.trim();
+
             const defaultPassword = 'GH548257af';
 
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
 
             try {
-                // Cuba daftar akaun dalam Firebase Auth & Database
+                // Cuba daftar akaun dalam Firebase Auth & Database (termasuk simpan info reseller jika perlu)
                 const userCredential = await createUserWithEmailAndPassword(auth, email, defaultPassword);
                 const user = userCredential.user;
 
@@ -150,6 +186,11 @@
                     name: name,
                     email: email,
                     phone: phone,
+                    reseller: {
+                        name: resellerName,
+                        email: resellerEmail,
+                        phone: resellerPhone
+                    },
                     createdAt: new Date().toISOString()
                 });
             } catch (error) {
@@ -157,8 +198,19 @@
                 console.log("Firebase Notice:", error.message);
             }
 
-            // ARAHAN UTAMA: Selepas selesai (atau jika berlaku ralat), terus paksa redirect ke link ini
-            window.location.href = "https://bijakbelajar.bcl.my/form/customer-registration";
+            // Bina URL redirect dengan membawa data reseller secara auto-fill (URL Parameters)
+            const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
+            const params = new URLSearchParams({
+                reseller_name: resellerName,
+                reseller_email: resellerEmail,
+                reseller_phone: resellerPhone,
+                customer_name: name,
+                customer_email: email,
+                customer_phone: phone
+            });
+
+            // Terus redirect ke link BCL bersama data
+            window.location.href = `${baseUrl}?${params.toString()}`;
         });
     </script>
 </body>
