@@ -178,7 +178,7 @@
             submitBtn.textContent = 'Processing...';
 
             try {
-                // Cuba daftar akaun dalam Firebase Auth & Database (termasuk simpan info reseller jika perlu)
+                // Cuba daftar akaun dalam Firebase Auth & Database
                 const userCredential = await createUserWithEmailAndPassword(auth, email, defaultPassword);
                 const user = userCredential.user;
 
@@ -198,8 +198,10 @@
                 console.log("Firebase Notice:", error.message);
             }
 
-            // Bina URL redirect dengan membawa data reseller secara auto-fill (URL Parameters)
+            // URL halaman BCL tujuan
             const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
+            
+            // Masukkan data reseller dan customer ke dalam URL parameters supaya auto-fill di page BCL
             const params = new URLSearchParams({
                 reseller_name: resellerName,
                 reseller_email: resellerEmail,
@@ -209,7 +211,7 @@
                 customer_phone: phone
             });
 
-            // Terus redirect ke link BCL bersama data
+            // Lakukan redirection automatik ke page BCL bersama data
             window.location.href = `${baseUrl}?${params.toString()}`;
         });
     </script>
