@@ -15,7 +15,7 @@
        })();
     </script>
 
-    <!-- Firebase SDK (Modular v10) -->
+  <!-- Firebase SDK (Modular v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -41,6 +41,11 @@
         window.handleRegister = async function(event) {
             // Halang borang daripada 'submit' cara biasa
             event.preventDefault();
+
+            // Ubah button jadi loading / nyahaktifkan seketika untuk elakkan double-click
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Memproses...";
 
             // Ambil data customer
             const custNama = document.getElementById('cust_nama').value;
@@ -72,10 +77,12 @@
             } catch (error) {
                 console.error("Ralat Firebase:", error);
                 alert("Gagal mendaftar ke Firebase: " + error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Register & Teruskan";
                 return; // Hentikan proses jika gagal daftar Firebase
             }
 
-            // 3. Cuba Hantar Emel Automatik (Diasingkan supaya kalau emel gagal, sistem tak 'block' pendaftaran)
+            // 3. Cuba Hantar Emel Automatik dan tunggu hingga selesai sebelum redirect
             try {
                 const templateParams = {
                     to_name: custNama,
@@ -83,18 +90,18 @@
                     password: defaultPassword
                 };
 
+                // Pastikan menggunakan 'await' supaya skrip menunggu emel selesai dihantar
                 await emailjs.send('service_hd5rpgc', 'template_75uw67r', templateParams);
                 console.log("Emel berjaya dihantar melalui EmailJS.");
             } catch (emailError) {
                 console.warn("Amaran: Emel gagal dihantar tetapi pendaftaran kekal berjaya.", emailError);
-                // Boleh abaikan atau beri paparan amaran kecil jika perlu
             }
 
-            // 4. Bina URL target menggunakan data reseller untuk dibawa ke BCL[cite: 2]
+            // 4. Bina URL target menggunakan data reseller untuk dibawa ke BCL
             const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
             const targetUrl = `${baseUrl}?name=${encodeURIComponent(resellerNama)}&email=${encodeURIComponent(resellerEmail)}&phone=${encodeURIComponent(resellerNofon)}`;
 
-            // Bawa pengguna secara automatik ke halaman tersebut[cite: 2]
+            // Bawa pengguna secara automatik ke halaman tersebut selepas emel selesai diproses
             window.location.href = targetUrl;
         }
     </script>
