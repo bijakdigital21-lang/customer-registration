@@ -3,73 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran Pantas - Bijak Belajar</title>
-    <!-- Menggunakan Tailwind CSS untuk rekaan moden -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Customer Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .warning-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .reseller-section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 2px dashed #ddd;
+        }
+        .reseller-section h3 {
+            font-size: 16px;
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+        .btn-register {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .btn-register:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+<body>
 
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-        <div class="text-center mb-6">
-            <h2 class="text-2xl font-bold text-slate-800">Daftar Sekarang</h2>
-            <p class="text-sm text-slate-500 mt-1">Sila masukkan maklumat anda untuk diteruskan.</p>
+    <div class="container">
+        <h2>Customer Registration</h2>
+        
+        <!-- Nota Peringatan -->
+        <div class="warning-box">
+            <strong>⚠️ PERINGATAN PENTING</strong>
+            Sila pastikan semua maklumat customer diisi dengan tepat dan lengkap.<br>
+            Pastikan tiada sebarang kesilapan atau typo sebelum meneruskan pendaftaran.<br>
+            Pastikan alamat email yang diberikan adalah betul dan aktif.
         </div>
 
-        <form id="regForm" onsubmit="handleRegister(event)" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Penuh</label>
-                <input type="text" id="nama" required 
-                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="Contoh: Ahmad Ali">
+        <!-- Form Pendaftaran -->
+        <form id="registrationForm">
+            <!-- Maklumat Customer -->
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" required placeholder="Masukkan nama penuh">
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Emel</label>
-                <input type="email" id="email" required 
-                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="contoh@email.com">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required placeholder="nama@example.com">
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">No. Telefon</label>
-                <input type="tel" id="nofon" required 
-                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="0123456789">
+            <div class="form-group">
+                <label for="phone">Phone NO:</label>
+                <input type="tel" id="phone" required placeholder="0123456789">
             </div>
 
-            <button type="submit" 
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200 shadow-md">
-                Register & Teruskan
-            </button>
+            <!-- Maklumat Reseller (Di Bahagian Bawah) -->
+            <div class="reseller-section">
+                <h3>Maklumat Reseller</h3>
+                
+                <div class="form-group">
+                    <label for="resellerName">Nama Reseller:</label>
+                    <input type="text" id="resellerName" placeholder="Auto-fill dari link">
+                </div>
+
+                <div class="form-group">
+                    <label for="resellerEmail">Email Reseller:</label>
+                    <input type="email" id="resellerEmail" placeholder="Auto-fill dari link">
+                </div>
+
+                <div class="form-group">
+                    <label for="resellerPhone">No Fon Reseller:</label>
+                    <input type="tel" id="resellerPhone" placeholder="Auto-fill dari link">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register" id="submitBtn">Register Now</button>
         </form>
     </div>
 
-    <script>
-        function handleRegister(event) {
-            // Halang borang daripada 'submit' cara biasa
-            event.preventDefault();
+    <!-- Firebase SDK & Auto-Fill Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-            // Ambil nilai daripada input pengguna
-            const nama = encodeURIComponent(document.getElementById('nama').value);
-            const email = encodeURIComponent(document.getElementById('email').value);
-            const nofon = encodeURIComponent(document.getElementById('nofon').value);
+        // Konfigurasi Firebase anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXc06B8WLtqjkG0aScBHrd3L3M-n_5okc",
+            authDomain: "grammar-hub-6af80.firebaseapp.com",
+            databaseURL: "https://grammar-hub-6af80-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "grammar-hub-6af80",
+            storageBucket: "grammar-hub-6af80.firebasestorage.app",
+            messagingSenderId: "1092171234032",
+            appId: "1:1092171234032:web:7cc8efefb812993500e035"
+        };
 
-            // URL Destinasi yang diberikan
-            const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
 
-            /**
-             * NOTA PENTING:
-             * Kod di bawah mengikut andaian standard sistem borang menerima parameter URL 
-             * (seperti ?name=...&email=...&phone=...). 
-             * Sila tukar 'name', 'email', 'phone' mengikut 'name' attribute yang digunakan 
-             * pada sistem asal (bijakbelajar.bcl.my).
-             */
-            const targetUrl = `${baseUrl}?name=${nama}&email=${email}&phone=${nofon}`;
+        // Auto-Fill Data Reseller dari URL Parameters
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Contoh format link: https://bijakbelajar.bcl.my/form/customer-registration?rname=Ali&remail=ali@mail.com&rphone=0123456789
+            if (urlParams.has('rname')) {
+                document.getElementById('resellerName').value = urlParams.get('rname');
+            }
+            if (urlParams.has('remail')) {
+                document.getElementById('resellerEmail').value = urlParams.get('remail');
+            }
+            if (urlParams.has('rphone')) {
+                document.getElementById('resellerPhone').value = urlParams.get('rphone');
+            }
+        });
 
-            // Bawa pengguna secara automatik ke halaman tersebut dengan data yang dibawa bersama
-            window.location.href = targetUrl;
-        }
+        const form = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            
+            // Ambil juga data reseller jika perlu disimpan ke Firebase
+            const resellerName = document.getElementById('resellerName').value.trim();
+            const resellerEmail = document.getElementById('resellerEmail').value.trim();
+            const resellerPhone = document.getElementById('resellerPhone').value.trim();
+
+            const defaultPassword = 'GH548257af';
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                // Cuba daftar akaun dalam Firebase Auth & Database
+                const userCredential = await createUserWithEmailAndPassword(auth, email, defaultPassword);
+                const user = userCredential.user;
+
+                await set(ref(db, 'customers/' + user.uid), {
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    reseller: {
+                        name: resellerName,
+                        email: resellerEmail,
+                        phone: resellerPhone
+                    },
+                    createdAt: new Date().toISOString()
+                });
+            } catch (error) {
+                // Walaupun akaun dah wujud atau ada ralat lain, proses tetap diteruskan ke link tujuan
+                console.log("Firebase Notice:", error.message);
+            }
+
+            // ARAHAN UTAMA: Selepas selesai (atau jika berlaku ralat), terus paksa redirect ke link ini
+            window.location.href = "https://apps2.klikwoi.net/page/customer-registration-";
+        });
     </script>
-
 </body>
 </html>
