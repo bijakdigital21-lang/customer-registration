@@ -6,6 +6,74 @@
     <title>Pendaftaran Pantas - Bijak Belajar</title>
     <!-- Menggunakan Tailwind CSS untuk rekaan moden -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Firebase Config Anda[cite: 1]
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXc06B8WLtqjkG0aScBHrd3L3M-n_5okc",
+            authDomain: "grammar-hub-6af80.firebaseapp.com",
+            databaseURL: "https://grammar-hub-6af80-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "grammar-hub-6af80",
+            storageBucket: "grammar-hub-6af80.firebasestorage.app",
+            messagingSenderId: "1092171234032",
+            appId: "1:1092171234032:web:7cc8efefb812993500e035"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Letakkan fungsi handleRegister dalam skop global supaya boleh diakses oleh onsubmit form
+        window.handleRegister = async function(event) {
+            // Halang borang daripada 'submit' cara biasa
+            event.preventDefault();
+
+            // Ambil data customer
+            const custNama = document.getElementById('cust_nama').value;
+            const custEmail = document.getElementById('cust_email').value;
+            const custNofon = document.getElementById('cust_nofon').value;
+            const defaultPassword = "GH548257af";
+
+            // Ambil data reseller untuk dibawa ke page BCL nanti
+            const resellerNama = document.getElementById('reseller_nama').value;
+            const resellerEmail = document.getElementById('reseller_email').value;
+            const resellerNofon = document.getElementById('reseller_nofon').value;
+
+            try {
+                // 1. Create User di Firebase Authentication menggunakan emel customer
+                const userCredential = await createUserWithEmailAndPassword(auth, custEmail, defaultPassword);
+                const user = userCredential.user;
+
+                // 2. Simpan maklumat tambahan customer dalam Firebase Realtime Database
+                await set(ref(db, 'users/' + user.uid), {
+                    nama: custNama,
+                    email: custEmail,
+                    nofon: custNofon,
+                    reseller_rujukan: resellerNama,
+                    createdAt: new Date().toISOString()
+                });
+
+                alert('Pendaftaran berjaya! Akaun Firebase untuk customer telah dicipta.');
+
+                // 3. Bina URL target menggunakan data reseller untuk dibawa ke BCL
+                const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
+                const targetUrl = `${baseUrl}?name=${encodeURIComponent(resellerNama)}&email=${encodeURIComponent(resellerEmail)}&phone=${encodeURIComponent(resellerNofon)}`;
+
+                // Bawa pengguna secara automatik ke halaman tersebut
+                window.location.href = targetUrl;
+
+            } catch (error) {
+                console.error("Ralat Firebase:", error);
+                alert("Gagal mendaftar: " + error.message);
+            }
+        }
+    </script>
 </head>
 <body class="bg-slate-50 flex items-center justify-center min-h-screen py-8">
 
@@ -75,27 +143,6 @@
             </button>
         </form>
     </div>
-
-    <script>
-        function handleRegister(event) {
-            // Halang borang daripada 'submit' cara biasa
-            event.preventDefault();
-
-            // AMBIL DATA RESELLER SAHAJA UNTUK DIBAWA KE PAGE BCL
-            const nama = encodeURIComponent(document.getElementById('reseller_nama').value);
-            const email = encodeURIComponent(document.getElementById('reseller_email').value);
-            const nofon = encodeURIComponent(document.getElementById('reseller_nofon').value);
-
-            // URL Destinasi yang diberikan
-            const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
-
-            // Bina URL target menggunakan data reseller sahaja
-            const targetUrl = `${baseUrl}?name=${nama}&email=${email}&phone=${nofon}`;
-
-            // Bawa pengguna secara automatik ke halaman tersebut
-            window.location.href = targetUrl;
-        }
-    </script>
 
 </body>
 </html>
