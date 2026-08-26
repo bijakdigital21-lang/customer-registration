@@ -99,7 +99,7 @@
 
             // NOTA: Gantikan 'name', 'email', 'phone' di bawah dengan parameter sebenar 
             // yang digunakan oleh sistem klikwoi.net (jika berbeza).
-           const targetUrl = `${baseUrl}?nama=${encodeURIComponent(nama)}&email=${encodeURIComponent(email)}&telefon=${encodeURIComponent(phone)}`;
+           const targetUrl = `${baseUrl}?n=${encodeURIComponent(nama)}&e=${encodeURIComponent(email)}&p=${encodeURIComponent(phone)}`;
             
             // Bawa pengguna secara auto ke page tersebut
             window.location.href = targetUrl;
