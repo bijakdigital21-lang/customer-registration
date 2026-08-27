@@ -21,7 +21,7 @@
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Firebase Config Anda[cite: 1]
+        // Firebase Config Anda
         const firebaseConfig = {
             apiKey: "AIzaSyDXc06B8WLtqjkG0aScBHrd3L3M-n_5okc",
             authDomain: "grammar-hub-6af80.firebaseapp.com",
@@ -37,76 +37,138 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // Letakkan fungsi handleRegister dalam skop global supaya boleh diakses oleh onsubmit form
-        window.handleRegister = async function(event) {
-            // Halang borang daripada 'submit' cara biasa
+        // 1. Handle Pendaftaran (Simpan dalam LocalStorage / Pending Admin)
+        window.handleRegister = function(event) {
             event.preventDefault();
 
-            // Ubah button jadi loading / nyahaktifkan seketika untuk elakkan double-click
             const submitBtn = event.target.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             submitBtn.innerText = "Memproses...";
 
-            // Ambil data customer
             const custNama = document.getElementById('cust_nama').value;
             const custEmail = document.getElementById('cust_email').value;
             const custNofon = document.getElementById('cust_nofon').value;
             const defaultPassword = "GH548257af";
 
-            // Ambil data reseller untuk dibawa ke page BCL nanti
-            const resellerNama = document.getElementById('reseller_nama').value;
-            const resellerEmail = document.getElementById('reseller_email').value;
-            const resellerNofon = document.getElementById('reseller_nofon').value;
+            // Simpan dalam senarai pending di localStorage
+            const newRequest = {
+                id: Date.now(),
+                nama: custNama,
+                email: custEmail,
+                nofon: custNofon,
+                password: defaultPassword,
+                date: new Date().toLocaleString()
+            };
+
+            let pendingList = JSON.parse(localStorage.getItem('pending_users') || '[]');
+            pendingList.push(newRequest);
+            localStorage.setItem('pending_users', JSON.stringify(pendingList));
+
+            alert("Pendaftaran berjaya dihantar! Sila tunggu kelulusan daripada Admin.");
+            document.getElementById('regForm').reset();
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Register & Teruskan";
+        }
+
+        // 2. Fungsi Admin Login
+        window.checkAdminLogin = function() {
+            const pass = document.getElementById('admin_pass').value;
+            if (pass === "019681") {
+                document.getElementById('login_section').classList.add('hidden');
+                document.getElementById('admin_dashboard').classList.remove('hidden');
+                loadPendingTable();
+            } else {
+                alert("Password Admin Salah!");
+            }
+        }
+
+        window.closeAdmin = function() {
+            document.getElementById('admin_modal').classList.add('hidden');
+            document.getElementById('admin_pass').value = '';
+        }
+
+        window.openAdminModal = function() {
+            document.getElementById('admin_modal').classList.remove('hidden');
+            document.getElementById('login_section').classList.remove('hidden');
+            document.getElementById('admin_dashboard').classList.add('hidden');
+        }
+
+        // 3. Papar Senarai Pending di Dashboard Admin
+        function loadPendingTable() {
+            const tbody = document.getElementById('pending_table_body');
+            tbody.innerHTML = '';
+            let pendingList = JSON.parse(localStorage.getItem('pending_users') || '[]');
+
+            if (pendingList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Tiada senarai menunggu.</td></tr>`;
+                return;
+            }
+
+            pendingList.forEach((user, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="py-3 px-4">${user.nama}<br><span class="text-xs text-slate-400">${user.email}</span></td>
+                    <td class="py-3 px-4">${user.nofon}</td>
+                    <td class="py-3 px-4 text-xs text-slate-500">${user.date}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="approveUser(${index})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg shadow">Approve</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 4. Proses Approve (Firebase + EmailJS)
+        window.approveUser = async function(index) {
+            let pendingList = JSON.parse(localStorage.getItem('pending_users') || '[]');
+            const user = pendingList[index];
+
+            if (!confirm(`Adakah anda pasti untuk approve ${user.nama}?`)) return;
 
             try {
-                // 1. Create User di Firebase Authentication menggunakan emel customer
-                const userCredential = await createUserWithEmailAndPassword(auth, custEmail, defaultPassword);
-                const user = userCredential.user;
+                // Create User di Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, user.email, user.password);
+                const firebaseUser = userCredential.user;
 
-                // 2. Simpan maklumat tambahan customer dalam Firebase Realtime Database
-                await set(ref(db, 'users/' + user.uid), {
-                    nama: custNama,
-                    email: custEmail,
-                    nofon: custNofon,
-                    reseller_rujukan: resellerNama,
+                // Simpan Realtime Database
+                await set(ref(db, 'users/' + firebaseUser.uid), {
+                    nama: user.nama,
+                    email: user.email,
+                    nofon: user.nofon,
                     createdAt: new Date().toISOString()
                 });
 
-                console.log("Firebase pendaftaran & database berjaya disimpan.");
+                // Hantar Emel melalui EmailJS
+                const templateParams = {
+                    to_name: user.nama,
+                    to_email: user.email,
+                    password: user.password
+                };
+                await emailjs.send('service_hd5rpgc', 'template_9sh4gw2', templateParams);
+
+                // Buang dari senarai pending
+                pendingList.splice(index, 1);
+                localStorage.setItem('pending_users', JSON.stringify(pendingList));
+
+                alert(`Berjaya approve ${user.nama}! Akaun dicipta dan emel telah dihantar.`);
+                loadPendingTable();
 
             } catch (error) {
-                console.error("Ralat Firebase:", error);
-                alert("Gagal mendaftar ke Firebase: " + error.message);
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Register & Teruskan";
-                return; // Hentikan proses jika gagal daftar Firebase
+                console.error("Ralat:", error);
+                alert("Gagal memproses kelulusan: " + error.message);
             }
-
-            // 3. Cuba Hantar Emel Automatik dan tunggu hingga selesai sebelum redirect
-            try {
-                const templateParams = {
-                    to_name: custNama,
-                    to_email: custEmail,
-                    password: defaultPassword
-                };
-
-                // Pastikan menggunakan 'await' supaya skrip menunggu emel selesai dihantar
-                await emailjs.send('service_hd5rpgc', 'template_9sh4gw2', templateParams);
-                console.log("Emel berjaya dihantar melalui EmailJS.");
-            } catch (emailError) {
-                console.warn("Amaran: Emel gagal dihantar tetapi pendaftaran kekal berjaya.", emailError);
-            }
-
-            // 4. Bina URL target menggunakan data reseller untuk dibawa ke BCL
-            const baseUrl = "https://bijakbelajar.bcl.my/form/customer-registration";
-            const targetUrl = `${baseUrl}?name=${encodeURIComponent(resellerNama)}&email=${encodeURIComponent(resellerEmail)}&phone=${encodeURIComponent(resellerNofon)}`;
-
-            // Bawa pengguna secara automatik ke halaman tersebut selepas emel selesai diproses
-            window.location.href = targetUrl;
         }
     </script>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen py-8">
+<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center py-8 relative">
+
+    <!-- Button Admin di penjuru atas kanan -->
+    <div class="absolute top-4 right-4">
+        <button onclick="openAdminModal()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition">
+            🔐 Admin Panel
+        </button>
+    </div>
 
     <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
         <div class="text-center mb-6">
@@ -121,12 +183,11 @@
                     <span>⚠️</span> PERINGATAN PENTING
                 </p>
                 <p>Sila pastikan semua maklumat customer diisi dengan tepat dan lengkap.</p>
-                <p>Pastikan tiada sebarang kesilapan atau typo sebelum meneruskan pendaftaran.</p>
                 <p>Pastikan alamat email yang diberikan adalah betul dan aktif.</p>
             </div>
 
             <!-- MAKLUMAT CUSTOMER -->
-            <div class="space-y-4 pb-4 border-b border-slate-200">
+            <div class="space-y-4 pb-4">
                 <h3 class="text-md font-semibold text-blue-700">MAKLUMAT CUSTOMER</h3>
                 
                 <div>
@@ -151,37 +212,56 @@
                 </div>
             </div>
 
-            <!-- MAKLUMAT RESELLER (DATA AKAN DI-AUTO FILL KE BCL) -->
-            <div class="space-y-4">
-                <h3 class="text-md font-semibold text-emerald-700">MAKLUMAT RESELLER</h3>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Reseller</label>
-                    <input type="text" id="reseller_nama" required 
-                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        placeholder="Contoh: Ahmad Ali">
+            <button type="submit" 
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200 shadow-md">
+                Register & Hantar
+            </button>
+        </form>
+    </div>
+
+    <!-- ADMIN MODAL / PANEL -->
+    <div id="admin_modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200">
+            
+            <!-- Header Modal -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Admin Control Panel</h3>
+                <button onclick="closeAdmin()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="p-6">
+                <!-- Seksyen Login Password -->
+                <div id="login_section" class="space-y-4 max-w-sm mx-auto py-8 text-center">
+                    <h4 class="text-slate-700 font-medium">Masukkan Password Admin</h4>
+                    <input type="password" id="admin_pass" placeholder="••••••" 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-center tracking-widest focus:ring-2 focus:ring-slate-800 focus:outline-none">
+                    <button onclick="checkAdminLogin()" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-2 rounded-lg transition">
+                        Log Masuk
+                    </button>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Email Reseller</label>
-                    <input type="email" id="reseller_email" required 
-                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        placeholder="reseller@email.com">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">No. Telefon </label>
-                    <input type="tel" id="reseller_nofon" required 
-                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        placeholder="0189876543">
+                <!-- Seksyen Dashboard (Selepas Login Betul) -->
+                <div id="admin_dashboard" class="hidden space-y-4">
+                    <h4 class="font-semibold text-slate-800">Senarai Pendaftaran Pending (Menunggu Kelulusan)</h4>
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                    <th class="py-2.5 px-4">Nama & Email</th>
+                                    <th class="py-2.5 px-4">No. Telefon</th>
+                                    <th class="py-2.5 px-4">Tarikh Mohon</th>
+                                    <th class="py-2.5 px-4 text-right">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending_table_body">
+                                <!-- Data akan dimasukkan secara dinamik -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <button type="submit" 
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200 shadow-md">
-                Register & Teruskan
-            </button>
-        </form>
+        </div>
     </div>
 
 </body>
