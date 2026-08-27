@@ -7,6 +7,24 @@
     <!-- Menggunakan Tailwind CSS untuk rekaan moden -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Google Fonts: Comic Neue & Fredoka untuk gaya ceria kanak-kanak -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', cursive, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            background-attachment: fixed;
+        }
+        .fun-shadow {
+            box-shadow: 0 10px 25px -5px rgba(255, 105, 135, 0.4), 0 8px 10px -6px rgba(255, 105, 135, 0.4);
+        }
+        .fun-input:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
+        }
+    </style>
+    
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
@@ -43,7 +61,7 @@
 
             const submitBtn = event.target.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Memproses...";
+            submitBtn.innerText = "🚀 Memproses Ceria...";
 
             const custNama = document.getElementById('cust_nama').value;
             const custEmail = document.getElementById('cust_email').value;
@@ -64,10 +82,10 @@
             pendingList.push(newRequest);
             localStorage.setItem('pending_users', JSON.stringify(pendingList));
 
-            alert("Pendaftaran berjaya dihantar! Sila tunggu kelulusan daripada Admin.");
+            alert("🎉 Pendaftaran berjaya dihantar! Sila tunggu kelulusan daripada Admin.");
             document.getElementById('regForm').reset();
             submitBtn.disabled = false;
-            submitBtn.innerText = "Register & Teruskan";
+            submitBtn.innerText = "🚀 Daftar & Teruskan!";
         }
 
         // 2. Fungsi Admin Login
@@ -78,7 +96,7 @@
                 document.getElementById('admin_dashboard').classList.remove('hidden');
                 loadPendingTable();
             } else {
-                alert("Password Admin Salah!");
+                alert("❌ Password Admin Salah!");
             }
         }
 
@@ -100,19 +118,19 @@
             let pendingList = JSON.parse(localStorage.getItem('pending_users') || '[]');
 
             if (pendingList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Tiada senarai menunggu.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-purple-400 font-semibold">🎈 Tiada senarai menunggu. Semua ceria!</td></tr>`;
                 return;
             }
 
             pendingList.forEach((user, index) => {
                 const tr = document.createElement('tr');
-                tr.className = "border-b border-slate-100";
+                tr.className = "border-b border-pink-100 hover:bg-pink-50/50 transition";
                 tr.innerHTML = `
-                    <td class="py-3 px-4">${user.nama}<br><span class="text-xs text-slate-400">${user.email}</span></td>
-                    <td class="py-3 px-4">${user.nofon}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">${user.date}</td>
+                    <td class="py-3 px-4 font-medium text-slate-700">${user.nama}<br><span class="text-xs text-purple-400">${user.email}</span></td>
+                    <td class="py-3 px-4 text-slate-600">${user.nofon}</td>
+                    <td class="py-3 px-4 text-xs text-slate-400">${user.date}</td>
                     <td class="py-3 px-4 text-right">
-                        <button onclick="approveUser(${index})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg shadow">Approve</button>
+                        <button onclick="approveUser(${index})" class="bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-md transition transform hover:scale-105">✨ Approve</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -151,108 +169,117 @@
                 pendingList.splice(index, 1);
                 localStorage.setItem('pending_users', JSON.stringify(pendingList));
 
-                alert(`Berjaya approve ${user.nama}! Akaun dicipta dan emel telah dihantar.`);
+                alert(`🌟 Berjaya approve ${user.nama}! Akaun dicipta dan emel telah dihantar.`);
                 loadPendingTable();
 
             } catch (error) {
                 console.error("Ralat:", error);
-                alert("Gagal memproses kelulusan: " + error.message);
+                alert("❌ Gagal memproses kelulusan: " + error.message);
             }
         }
     </script>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center py-8 relative">
+<body class="min-h-screen flex flex-col items-center justify-center py-10 px-4 relative">
 
     <!-- Button Admin di penjuru atas kanan -->
     <div class="absolute top-4 right-4">
-        <button onclick="openAdminModal()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition">
+        <button onclick="openAdminModal()" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-1.5 border-2 border-white">
             🔐 Admin Panel
         </button>
     </div>
 
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-        <div class="text-center mb-6">
-            <h2 class="text-2xl font-bold text-slate-800">GRAMMAR HUB</h2>
-             <h2 class="text-2xl font-bold text-slate-800">CUSTOMER REGISTRATION</h2>
+    <!-- Kad Pendaftaran Utama -->
+    <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl fun-shadow w-full max-w-md border-4 border-yellow-300 relative overflow-hidden">
+        
+        <!-- Hiasan Bentuk Ceria di Penjuru -->
+        <div class="absolute -top-10 -left-10 w-24 h-24 bg-pink-300 rounded-full opacity-50 pointer-events-none"></div>
+        <div class="absolute -bottom-10 -right-10 w-28 h-28 bg-blue-300 rounded-full opacity-50 pointer-events-none"></div>
+
+        <div class="text-center mb-6 relative z-10">
+            <span class="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2 shadow-sm">✨ Jom Belajar Bersama! ✨</span>
+            <h2 class="text-3xl font-bold text-pink-600 tracking-wide drop-shadow-sm">GRAMMAR HUB</h2>
+            <h2 class="text-xl font-bold text-indigo-600 mt-1">KIDS REGISTRATION 🎨</h2>
         </div>
 
-        <form id="regForm" onsubmit="handleRegister(event)" class="space-y-6">
+        <form id="regForm" onsubmit="handleRegister(event)" class="space-y-5 relative z-10">
             
             <!-- PERINGATAN PENTING -->
-            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg text-sm text-amber-900 space-y-1">
-                <p class="font-bold flex items-center gap-1.5">
-                    <span>⚠️</span> PERINGATAN PENTING
+            <div class="bg-gradient-to-r from-amber-100 to-yellow-100 border-l-4 border-amber-400 p-4 rounded-2xl text-xs text-amber-900 space-y-1 shadow-inner">
+                <p class="font-bold flex items-center gap-1.5 text-amber-800 text-sm">
+                    <span>💡</span> PERINGATAN PENTING:
                 </p>
-                <p>Sila pastikan semua maklumat anda di isi dengan tepat dan lengkap.</p>
-                <p>Pastikan alamat email yang didaftarkan adalah betul dan aktif.</p>
-                  <p>Link akses ke aplikasi Grammar Hub akan di hantar melalui email dan nomber whatsapp yang berdaftar.</p>
+                <p>• Sila pastikan semua maklumat diisi dengan tepat ya!</p>
+                <p>• Alamat emel mestilah betul dan aktif.</p>
+                <p>• Pautan akses akan dihantar ke emel & WhatsApp berdaftar.</p>
             </div>
 
             <!-- MAKLUMAT CUSTOMER -->
-            <div class="space-y-4 pb-4">
-                <h3 class="text-md font-semibold text-blue-700">MAKLUMAT CUSTOMER</h3>
+            <div class="space-y-3.5">
+                <h3 class="text-sm font-bold text-pink-500 uppercase tracking-wider flex items-center gap-1">
+                    <span>🎈</span> Maklumat Pengguna / Anak
+                </h3>
                 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Customer</label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Penuh</label>
                     <input type="text" id="cust_nama" required 
-                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        class="w-full px-4 py-2.5 bg-purple-50/50 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:outline-none fun-input text-sm font-medium text-slate-700 placeholder-purple-300"
                         placeholder="Contoh: Siti Aminah">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Email Customer</label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Alamat Emel</label>
                     <input type="email" id="cust_email" required 
-                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        class="w-full px-4 py-2.5 bg-purple-50/50 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:outline-none fun-input text-sm font-medium text-slate-700 placeholder-purple-300"
                         placeholder="customer@email.com">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">No. Telefon </label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">No. Telefon WhatsApp</label>
                     <input type="tel" id="cust_nofon" required 
-                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        class="w-full px-4 py-2.5 bg-purple-50/50 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:outline-none fun-input text-sm font-medium text-slate-700 placeholder-purple-300"
                         placeholder="0123456789">
                 </div>
             </div>
 
             <button type="submit" 
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200 shadow-md">
-                Register & Hantar
+                class="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:to-indigo-600 text-white font-bold py-3 rounded-2xl transition duration-200 shadow-lg transform hover:scale-[1.02] text-base border-2 border-white/40 flex items-center justify-center gap-2">
+                🚀 Daftar & Teruskan
             </button>
         </form>
     </div>
 
     <!-- ADMIN MODAL / PANEL -->
-    <div id="admin_modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200">
+    <div id="admin_modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border-4 border-purple-300">
             
             <!-- Header Modal -->
-            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
-                <h3 class="font-bold text-lg">Admin Control Panel</h3>
-                <button onclick="closeAdmin()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2">🛠️ Admin Control Panel</h3>
+                <button onclick="closeAdmin()" class="text-white hover:text-yellow-300 text-2xl font-bold transition">&times;</button>
             </div>
 
             <div class="p-6">
                 <!-- Seksyen Login Password -->
                 <div id="login_section" class="space-y-4 max-w-sm mx-auto py-8 text-center">
-                    <h4 class="text-slate-700 font-medium">Masukkan Password Admin</h4>
+                    <h4 class="text-slate-700 font-bold">Masukkan Kata Laluan Admin 🔑</h4>
                     <input type="password" id="admin_pass" placeholder="••••••" 
-                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-center tracking-widest focus:ring-2 focus:ring-slate-800 focus:outline-none">
-                    <button onclick="checkAdminLogin()" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-2 rounded-lg transition">
-                        Log Masuk
+                        class="w-full px-4 py-3 bg-purple-50 border-2 border-purple-200 rounded-2xl text-center tracking-widest text-lg font-bold focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                    <button onclick="checkAdminLogin()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 rounded-2xl shadow-md transition transform hover:scale-105">
+                        Log Masuk 🚀
                     </button>
                 </div>
 
                 <!-- Seksyen Dashboard (Selepas Login Betul) -->
                 <div id="admin_dashboard" class="hidden space-y-4">
-                    <h4 class="font-semibold text-slate-800">Senarai Pendaftaran Pending (Menunggu Kelulusan)</h4>
-                    <div class="overflow-x-auto max-h-96">
+                    <h4 class="font-bold text-slate-700 flex items-center gap-2">📋 Senarai Pendaftaran Pending (Menunggu Kelulusan)</h4>
+                    <div class="overflow-x-auto max-h-96 rounded-2xl border-2 border-purple-100">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
-                                    <th class="py-2.5 px-4">Nama & Email</th>
-                                    <th class="py-2.5 px-4">No. Telefon</th>
-                                    <th class="py-2.5 px-4">Tarikh Mohon</th>
-                                    <th class="py-2.5 px-4 text-right">Tindakan</th>
+                                <tr class="bg-purple-100/70 text-purple-900 border-b-2 border-purple-200 font-bold">
+                                    <th class="py-3 px-4">Nama & Email</th>
+                                    <th class="py-3 px-4">No. Telefon</th>
+                                    <th class="py-3 px-4">Tarikh Mohon</th>
+                                    <th class="py-3 px-4 text-right">Tindakan</th>
                                 </tr>
                             </thead>
                             <tbody id="pending_table_body">
