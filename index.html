@@ -84,6 +84,7 @@
                 document.getElementById('login_section').classList.add('hidden');
                 document.getElementById('admin_dashboard').classList.remove('hidden');
                 loadPendingTable();
+                loadApprovedTable();
             } else {
                 alert("Password Admin Salah!");
             }
@@ -98,6 +99,26 @@
             document.getElementById('admin_modal').classList.remove('hidden');
             document.getElementById('login_section').classList.remove('hidden');
             document.getElementById('admin_dashboard').classList.add('hidden');
+        }
+
+        // Tukar Tab Admin (Pending vs Approved)
+        window.switchTab = function(tabName) {
+            const pendingSec = document.getElementById('section_pending');
+            const approvedSec = document.getElementById('section_approved');
+            const tabPendingBtn = document.getElementById('tab_pending_btn');
+            const tabApprovedBtn = document.getElementById('tab_approved_btn');
+
+            if (tabName === 'pending') {
+                pendingSec.classList.remove('hidden');
+                approvedSec.classList.add('hidden');
+                tabPendingBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow";
+                tabApprovedBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300";
+            } else {
+                pendingSec.classList.add('hidden');
+                approvedSec.classList.remove('hidden');
+                tabApprovedBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow";
+                tabPendingBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300";
+            }
         }
 
         // 3. Papar Senarai Pending di Dashboard Admin
@@ -126,7 +147,79 @@
             });
         }
 
-        // 4. Proses Approve (Firebase + EmailJS)
+        // 4. Papar Senarai Telah Diluluskan (Approved)
+        function loadApprovedTable() {
+            const tbody = document.getElementById('approved_table_body');
+            tbody.innerHTML = '';
+            let approvedList = JSON.parse(localStorage.getItem('approved_users') || '[]');
+
+            if (approvedList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-slate-500">Tiada rekod yang telah diluluskan.</td></tr>`;
+                return;
+            }
+
+            approvedList.forEach((user) => {
+                // Format mesej WhatsApp dengan email berdaftar
+                const rawMsg = `🎉 TERIMA KASIH ATAS PEMBELIAN ANDA!
+
+Terima kasih kerana memilih Grammar Hub! 💙
+
+Kami sangat teruja untuk anda mula belajar, berlatih dan meneroka pelbagai bahan pembelajaran yang telah disediakan untuk membantu meningkatkan penguasaan English Grammar dengan lebih mudah dan menyeronokkan.
+
+📚 AKSES GRAMMAR HUB ANDA
+
+Klik pautan di bawah untuk mula menggunakan Grammar Hub:
+
+👇🏻👇🏻
+https://bijakdigital21-lang.github.io/Grammarhub./
+
+🔐 MAKLUMAT LOG MASUK
+
+Email: ${user.email}
+Password: ${user.password}
+
+📌 Sila tukar password anda di laman profile selepas berjaya log masuk ke aplikasi ini.
+
+⚠️ PENTING
+
+📌 Simpan pautan Grammar Hub ini untuk rujukan dan akses anda pada masa akan datang.
+
+Sertai group reseller kami untuk info dan sokongan berterusan.
+👇🏻👇🏻👇🏻
+https://t.me/+Z-uxVSN8A54zNTdl
+
+📱 Sekiranya anda mengalami sebarang masalah untuk membuka atau mengakses Grammar Hub, jangan risau.
+
+Hubungi kami melalui WhatsApp dan kami sedia membantu.
+
+💙 Selamat belajar!
+Semoga Grammar Hub membantu anda.`;
+
+                // Sanitasi nombor telefon untuk pautan WhatsApp (tukar 01x kepada 601x jika perlu, atau guna terus)
+                let cleanPhone = user.nofon.replace(/\D/g,'');
+                if(cleanPhone.startsWith('0')) {
+                    cleanPhone = '6' + cleanPhone;
+                }
+
+                const encodedMsg = encodeURIComponent(rawMsg);
+                const waLink = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-slate-800">${user.nama}<br><span class="text-xs text-slate-400">${user.email}</span></td>
+                    <td class="py-3 px-4">
+                        <a href="${waLink}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-emerald-200 transition" title="Klik untuk hantar WhatsApp">
+                            📱 ${user.nofon} ↗
+                        </a>
+                    </td>
+                    <td class="py-3 px-4 text-xs text-slate-500">${user.date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 5. Proses Approve (Firebase + EmailJS + Pindah ke Approved List)
         window.approveUser = async function(index) {
             let pendingList = JSON.parse(localStorage.getItem('pending_users') || '[]');
             const user = pendingList[index];
@@ -154,12 +247,17 @@
                 };
                 await emailjs.send('service_hd5rpgc', 'template_9sh4gw2', templateParams);
 
-                // Buang dari senarai pending
+                // Buang dari pending dan masukkan ke approved_users supaya data tidak hilang
                 pendingList.splice(index, 1);
                 localStorage.setItem('pending_users', JSON.stringify(pendingList));
 
+                let approvedList = JSON.parse(localStorage.getItem('approved_users') || '[]');
+                approvedList.unshift(user); // Masukkan di senarai teratas
+                localStorage.setItem('approved_users', JSON.stringify(approvedList));
+
                 alert(`Berjaya approve ${user.nama}! Akaun dicipta dan emel telah dihantar.`);
                 loadPendingTable();
+                loadApprovedTable();
 
             } catch (error) {
                 console.error("Ralat:", error);
@@ -233,7 +331,7 @@
 
     <!-- ADMIN MODAL / PANEL -->
     <div id="admin_modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-200">
             
             <!-- Header Modal -->
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -254,21 +352,53 @@
 
                 <!-- Seksyen Dashboard (Selepas Login Betul) -->
                 <div id="admin_dashboard" class="hidden space-y-4">
-                    <h4 class="font-semibold text-slate-800">Senarai Pendaftaran Pending (Menunggu Kelulusan)</h4>
-                    <div class="overflow-x-auto max-h-96">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
-                                    <th class="py-2.5 px-4">Nama & Email</th>
-                                    <th class="py-2.5 px-4">No. Telefon</th>
-                                    <th class="py-2.5 px-4">Tarikh Mohon</th>
-                                    <th class="py-2.5 px-4 text-right">Tindakan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pending_table_body">
-                                <!-- Data akan dimasukkan secara dinamik -->
-                            </tbody>
-                        </table>
+                    <!-- Tab Navigation -->
+                    <div class="flex gap-2 border-b pb-3">
+                        <button id="tab_pending_btn" onclick="switchTab('pending')" class="px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow">
+                            Menunggu Kelulusan (Pending)
+                        </button>
+                        <button id="tab_approved_btn" onclick="switchTab('approved')" class="px-4 py-2 text-xs font-bold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300">
+                            Telah Diluluskan (Approved)
+                        </button>
+                    </div>
+
+                    <!-- Bahagian Pending -->
+                    <div id="section_pending" class="space-y-3">
+                        <h4 class="font-semibold text-slate-800 text-sm">Senarai Pendaftaran Baru</h4>
+                        <div class="overflow-x-auto max-h-80">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                        <th class="py-2.5 px-4">Nama & Email</th>
+                                        <th class="py-2.5 px-4">No. Telefon</th>
+                                        <th class="py-2.5 px-4">Tarikh Mohon</th>
+                                        <th class="py-2.5 px-4 text-right">Tindakan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending_table_body">
+                                    <!-- Data Pending -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Bahagian Approved (Kekal Tersimpan) -->
+                    <div id="section_approved" class="space-y-3 hidden">
+                        <h4 class="font-semibold text-slate-800 text-sm">Rekod Pelanggan Diluluskan (Klik No. Telefon untuk WhatsApp)</h4>
+                        <div class="overflow-x-auto max-h-80">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                        <th class="py-2.5 px-4">Nama & Email</th>
+                                        <th class="py-2.5 px-4">No. Telefon (WhatsApp)</th>
+                                        <th class="py-2.5 px-4">Tarikh Mohon</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approved_table_body">
+                                    <!-- Data Approved -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
